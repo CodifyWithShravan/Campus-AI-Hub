@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { supabase } from './supabaseClient'
+import { supabase } from '../config/supabaseClient'
 import { Sparkles } from 'lucide-react'
 
 export default function Auth() {
@@ -13,7 +13,7 @@ export default function Auth() {
     setLoading(true)
 
     let error
-    
+
     if (isSignUp) {
       const { error: signUpError } = await supabase.auth.signUp({ email, password })
       error = signUpError
@@ -38,7 +38,7 @@ export default function Auth() {
             <Sparkles size={24} className="text-white" />
           </div>
         </div>
-        
+
         <h1 className="text-3xl font-semibold text-center mb-2">Welcome to Campus AI</h1>
         <p className="text-[#8e918f] text-center mb-8">Sign in to access your student assistant.</p>
 
@@ -65,7 +65,7 @@ export default function Auth() {
               required
             />
           </div>
-          
+
           <button
             className="w-full bg-white text-black font-medium py-3 rounded-lg hover:bg-gray-200 transition-all disabled:opacity-50 mt-4"
             disabled={loading}
@@ -75,9 +75,9 @@ export default function Auth() {
         </form>
 
         <p className="text-center mt-6 text-sm text-[#8e918f]">
-          {isSignUp ? "Already have an account?" : "Don't have an account?"} 
-          <button 
-            onClick={() => setIsSignUp(!isSignUp)} 
+          {isSignUp ? "Already have an account?" : "Don't have an account?"}
+          <button
+            onClick={() => setIsSignUp(!isSignUp)}
             className="text-blue-400 hover:text-blue-300 ml-2 font-medium"
           >
             {isSignUp ? 'Log In' : 'Sign Up'}

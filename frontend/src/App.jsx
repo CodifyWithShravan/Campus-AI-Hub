@@ -1,12 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
-import { supabase } from './supabaseClient';
-import Auth from './Auth';
-import Profile from './Profile'; 
-import Vault from './Vault';
-import Calendar from './Calendar'; 
-import Home from './Home'; 
-import Network from './Network'; // <--- Network Import
-import UserChat from './UserChat'; // <--- DM Import
+import { supabase } from './config/supabaseClient';
+import Auth from './pages/Auth';
+import Profile from './pages/Profile';
+import Vault from './pages/Vault';
+import Calendar from './pages/Calendar';
+import Home from './pages/Home';
+import Network from './pages/Network'; // <--- Network Import
+import UserChat from './pages/UserChat'; // <--- DM Import
 import { Send, Plus, LogOut, Paperclip, Loader2, X, Sparkles, FileText, Archive, MessageSquare, Calendar as CalIcon, Menu, Mic, MicOff, Users } from 'lucide-react'; // Added Users
 import ReactMarkdown from 'react-markdown';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -29,23 +29,23 @@ export default function App() {
 function MainLayout({ session }) {
   const [currentView, setCurrentView] = useState('home'); // 'home', 'chat', 'profile', 'vault', 'calendar', 'network', 'dm'
   const [sessionId, setSessionId] = useState(null);
-  const [chatHistory, setChatHistory] = useState([]); 
+  const [chatHistory, setChatHistory] = useState([]);
   const [messages, setMessages] = useState([]);
   const [vaultSuggestions, setVaultSuggestions] = useState([]);
-  
+
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  
+
   // Google Calendar State
-  const [pendingEvent, setPendingEvent] = useState(null); 
+  const [pendingEvent, setPendingEvent] = useState(null);
 
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
 
-  const BRAND_NAME = "Campus AI Hub"; 
+  const BRAND_NAME = "Campus AI Hub";
   const rawName = session.user.email.split('@')[0];
   const userName = rawName.charAt(0).toUpperCase() + rawName.slice(1);
 
@@ -54,35 +54,35 @@ function MainLayout({ session }) {
     scope: 'https://www.googleapis.com/auth/calendar.events',
     onSuccess: async (tokenResponse) => {
       if (!pendingEvent) return;
-      
+
       try {
         await axios.post(
           'https://www.googleapis.com/calendar/v3/calendars/primary/events',
           {
             summary: pendingEvent.title,
             description: pendingEvent.description || "Created by Campus AI",
-            start: { 
-              dateTime: pendingEvent.start_time, 
-              timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone 
+            start: {
+              dateTime: pendingEvent.start_time,
+              timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
             },
-            end: { 
-              dateTime: pendingEvent.end_time, 
-              timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone 
+            end: {
+              dateTime: pendingEvent.end_time,
+              timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
             },
           },
           { headers: { Authorization: `Bearer ${tokenResponse.access_token}` } }
         );
-        
-        setMessages(prev => [...prev, { 
-          role: 'bot', 
-          text: `✅ **Success!** I have added "**${pendingEvent.title}**" to your Google Calendar.` 
+
+        setMessages(prev => [...prev, {
+          role: 'bot',
+          text: `✅ **Success!** I have added "**${pendingEvent.title}**" to your Google Calendar.`
         }]);
         setPendingEvent(null); // Clear pending event
       } catch (error) {
         console.error("Google Calendar Error:", error);
-        setMessages(prev => [...prev, { 
-          role: 'bot', 
-          text: "❌ Failed to add to Google Calendar. Please check permissions." 
+        setMessages(prev => [...prev, {
+          role: 'bot',
+          text: "❌ Failed to add to Google Calendar. Please check permissions."
         }]);
       }
     },
@@ -94,7 +94,7 @@ function MainLayout({ session }) {
     if (pendingEvent) {
       googleLogin();
     }
-  }, [pendingEvent]); 
+  }, [pendingEvent]);
 
   // --- INITIAL LOAD ---
   useEffect(() => {
@@ -127,14 +127,14 @@ function MainLayout({ session }) {
         const { data } = await supabase
           .from('messages')
           .select('*')
-          .eq('session_id', sessionId) 
+          .eq('session_id', sessionId)
           .order('created_at', { ascending: true });
-        
+
         if (data) {
           const formatted = data.map(msg => ({
             role: msg.is_bot ? 'bot' : 'user',
             text: msg.text,
-            sources: [] 
+            sources: []
           }));
           setMessages(formatted);
         } else {
@@ -157,13 +157,13 @@ function MainLayout({ session }) {
       .insert({ user_id: session.user.id, title: 'New Conversation' })
       .select()
       .single();
-    
+
     if (data) {
       setSessionId(data.id);
       setMessages([]);
       setCurrentView('chat');
       setMobileMenuOpen(false);
-      fetchChatHistory(); 
+      fetchChatHistory();
     }
   };
 
@@ -175,11 +175,11 @@ function MainLayout({ session }) {
       text: text,
       is_bot: isBot
     });
-    
+
     if (!isBot && messages.length === 0) {
-       const shortTitle = text.slice(0, 30) + (text.length > 30 ? '...' : '');
-       await supabase.from('chat_sessions').update({ title: shortTitle }).eq('id', activeSessionId);
-       fetchChatHistory();
+      const shortTitle = text.slice(0, 30) + (text.length > 30 ? '...' : '');
+      await supabase.from('chat_sessions').update({ title: shortTitle }).eq('id', activeSessionId);
+      fetchChatHistory();
     }
   };
 
@@ -189,8 +189,8 @@ function MainLayout({ session }) {
     let activeSessionId = sessionId;
 
     if (currentView !== 'chat' || !activeSessionId) {
-       const { data } = await supabase.from('chat_sessions').insert({ user_id: session.user.id, title: text.slice(0, 30) }).select().single();
-       if (data) { activeSessionId = data.id; setSessionId(data.id); setCurrentView('chat'); fetchChatHistory(); }
+      const { data } = await supabase.from('chat_sessions').insert({ user_id: session.user.id, title: text.slice(0, 30) }).select().single();
+      if (data) { activeSessionId = data.id; setSessionId(data.id); setCurrentView('chat'); fetchChatHistory(); }
     }
 
     const userMessage = { role: 'user', text: text };
@@ -207,16 +207,16 @@ function MainLayout({ session }) {
         body: JSON.stringify({ question: text, user_id: session.user.id }),
       });
       const data = await response.json();
-      
+
       // === GOOGLE CALENDAR TRIGGER ===
       if (data.command === 'schedule_google') {
-        setMessages(prev => [...prev, { role: 'bot', text: data.answer }]); 
-        setPendingEvent(data.event_details); 
+        setMessages(prev => [...prev, { role: 'bot', text: data.answer }]);
+        setPendingEvent(data.event_details);
       } else {
-        setMessages((prev) => [...prev, { 
-          role: 'bot', 
-          text: data.answer, 
-          sources: data.sources || [] 
+        setMessages((prev) => [...prev, {
+          role: 'bot',
+          text: data.answer,
+          sources: data.sources || []
         }]);
         saveMessageToDB(data.answer, true, activeSessionId);
       }
@@ -231,16 +231,16 @@ function MainLayout({ session }) {
   const handleFileUpload = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
-    
+
     let activeSessionId = sessionId;
     if (currentView !== 'chat' || !activeSessionId) {
-        const { data } = await supabase.from('chat_sessions').insert({ user_id: session.user.id, title: `Upload: ${file.name}` }).select().single();
-        if(data) { activeSessionId = data.id; setSessionId(data.id); setCurrentView('chat'); fetchChatHistory(); }
+      const { data } = await supabase.from('chat_sessions').insert({ user_id: session.user.id, title: `Upload: ${file.name}` }).select().single();
+      if (data) { activeSessionId = data.id; setSessionId(data.id); setCurrentView('chat'); fetchChatHistory(); }
     }
 
     setIsUploading(true);
     setMessages(prev => [...prev, { role: 'bot', text: `📄 **Reading ${file.name}...**` }]);
-    
+
     const formData = new FormData();
     formData.append("file", file);
 
@@ -257,7 +257,7 @@ function MainLayout({ session }) {
       setIsUploading(false);
     }
   };
-  
+
   const startListening = () => {
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -265,16 +265,16 @@ function MainLayout({ session }) {
       recognition.lang = 'en-US';
       recognition.interimResults = false;
       recognition.maxAlternatives = 1;
-      
+
       setIsListening(true);
-      
+
       recognition.onresult = (event) => {
         const transcript = event.results[0][0].transcript;
         setInput(transcript);
         sendMessage(transcript); // Automatically send after speaking
         setIsListening(false);
       };
-      
+
       recognition.onerror = (event) => {
         console.error("Speech recognition error", event.error);
         setIsListening(false);
@@ -282,7 +282,7 @@ function MainLayout({ session }) {
       };
 
       recognition.onend = () => setIsListening(false);
-      
+
       recognition.start();
     } else {
       alert("Voice input is not supported in this browser. Please use Google Chrome or Edge.");
@@ -291,7 +291,7 @@ function MainLayout({ session }) {
 
   return (
     <div className="flex h-screen bg-[#131314] text-[#e3e3e3] font-sans overflow-hidden relative">
-      
+
       {/* MOBILE HEADER */}
       <div className="md:hidden fixed top-0 w-full h-16 bg-[#1e1f20]/90 backdrop-blur-md border-b border-[#333] flex items-center justify-between px-4 z-50">
         <div className="flex items-center gap-2">
@@ -317,7 +317,7 @@ function MainLayout({ session }) {
             <img src="/logo.jpg" alt="Logo" className="w-8 h-8 rounded-full" />
             <span className="font-semibold text-lg tracking-tight text-white">{BRAND_NAME}</span>
           </div>
-          
+
           <button onClick={startNewChat} className="flex items-center gap-3 w-full bg-[#2a2b2e] hover:bg-[#333] px-4 py-3 rounded-full text-sm font-medium transition-all mb-6 text-white border border-[#333]">
             <Plus size={18} /> New chat
           </button>
@@ -338,7 +338,7 @@ function MainLayout({ session }) {
           </div>
 
           <div className="mt-auto pt-4 border-t border-[#333]">
-            
+
             {/* --- CALENDAR BUTTON --- */}
             <button onClick={() => { setCurrentView('calendar'); setMobileMenuOpen(false); }} className={`w-full text-left px-3 py-3 rounded-lg flex items-center gap-3 text-sm transition-colors mb-2 ${currentView === 'calendar' ? 'bg-[#333] text-white' : 'text-[#c4c7c5] hover:bg-[#2a2b2e]'}`}>
               <CalIcon size={18} className="text-purple-400" /><span className="font-medium">My Schedule</span>
@@ -372,17 +372,17 @@ function MainLayout({ session }) {
       {/* --- MAIN CONTENT AREA --- */}
       <div className="flex-1 flex flex-col relative w-full h-full bg-[#131314]">
         {currentView === 'home' ? (
-           <Home userName={userName} onNavigate={(view) => {
-             if (view === 'new_chat') startNewChat();
-             else setCurrentView(view);
-           }} />
+          <Home userName={userName} onNavigate={(view) => {
+            if (view === 'new_chat') startNewChat();
+            else setCurrentView(view);
+          }} />
         ) : currentView === 'profile' ? (
           <div className="flex-1 overflow-y-auto pt-16 md:pt-0"><Profile session={session} /></div>
         ) : currentView === 'vault' ? (
           <div className="flex-1 overflow-y-auto pt-16 md:pt-0"><Vault session={session} /></div>
         ) : currentView === 'calendar' ? (
           // RENDER THE NEW CALENDAR VIEW
-         <div className="flex-1 overflow-y-auto pt-16 md:pt-0"><Calendar session={session} /></div>
+          <div className="flex-1 overflow-y-auto pt-16 md:pt-0"><Calendar session={session} /></div>
         ) : currentView === 'network' ? (
           // RENDER NETWORK VIEW
           <div className="flex-1 overflow-y-auto pt-16 md:pt-0"><Network session={session} /></div>
@@ -420,7 +420,7 @@ function MainLayout({ session }) {
                                         const fileName = typeof src === 'string' ? src : src.name;
                                         const fileUrl = typeof src === 'string' ? '#' : src.url;
                                         return (
-                                          <a key={i} href={fileUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 bg-[#131314] border border-[#333] px-3 py-1.5 rounded-full text-xs text-blue-400 transition-all cursor-pointer no-underline" onClick={(e) => { if(fileUrl === '#') e.preventDefault(); }}>
+                                          <a key={i} href={fileUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 bg-[#131314] border border-[#333] px-3 py-1.5 rounded-full text-xs text-blue-400 transition-all cursor-pointer no-underline" onClick={(e) => { if (fileUrl === '#') e.preventDefault(); }}>
                                             <FileText size={12} /> <span className="truncate max-w-[200px] font-medium">{fileName}</span>
                                           </a>
                                         );
@@ -440,7 +440,7 @@ function MainLayout({ session }) {
                 )}
               </div>
             </div>
-            
+
             {/* INPUT BAR */}
             <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-[#131314] via-[#131314] to-transparent pt-10 pb-6 px-4 z-40">
               <div className="max-w-3xl mx-auto">
@@ -449,8 +449,8 @@ function MainLayout({ session }) {
                   <button onClick={() => fileInputRef.current.click()} disabled={isUploading || isLoading} className="pl-4 pr-2 text-gray-400 hover:text-blue-400 transition-colors">{isUploading ? <Loader2 size={20} className="animate-spin" /> : <Paperclip size={20} />}</button>
                   <input type="text" className="w-full bg-transparent text-[#e3e3e3] pl-4 pr-24 py-4 focus:outline-none placeholder-gray-500 text-base" placeholder={isListening ? "Listening..." : "Ask anything..."} value={input} onChange={(e) => setInput(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && sendMessage()} />
                   <div className="absolute right-2 top-2 flex items-center gap-1">
-                     <button onClick={startListening} className={`p-2 rounded-full transition-all ${isListening ? 'bg-red-500/20 text-red-400' : 'hover:bg-[#333] text-gray-400'}`}>{isListening ? <MicOff size={20} /> : <Mic size={20} />}</button>
-                     <button onClick={() => sendMessage()} disabled={!input.trim() || isLoading} className={`p-2 rounded-full transition-all ${input.trim() ? 'bg-white text-black' : 'text-gray-500 cursor-not-allowed'}`}><Send size={18} /></button>
+                    <button onClick={startListening} className={`p-2 rounded-full transition-all ${isListening ? 'bg-red-500/20 text-red-400' : 'hover:bg-[#333] text-gray-400'}`}>{isListening ? <MicOff size={20} /> : <Mic size={20} />}</button>
+                    <button onClick={() => sendMessage()} disabled={!input.trim() || isLoading} className={`p-2 rounded-full transition-all ${input.trim() ? 'bg-white text-black' : 'text-gray-500 cursor-not-allowed'}`}><Send size={18} /></button>
                   </div>
                 </div>
               </div>

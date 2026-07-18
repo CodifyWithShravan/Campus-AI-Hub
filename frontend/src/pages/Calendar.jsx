@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
-import { supabase } from './supabaseClient';
+import { supabase } from '.././config/supabaseClient';
 import { Calendar as CalIcon, Clock, Trash2, CheckCircle, ExternalLink, Plus, Save } from 'lucide-react';
 
 export default function Calendar({ session }) {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
-  
+
   // --- MANUAL ADD STATE ---
   const [newTask, setNewTask] = useState('');
   const [newDate, setNewDate] = useState('');
@@ -22,7 +22,7 @@ export default function Calendar({ session }) {
       .select('*')
       .eq('user_id', session.user.id)
       .order('start_time', { ascending: true });
-    
+
     if (data) setEvents(data);
     setLoading(false);
   };
@@ -48,7 +48,7 @@ export default function Calendar({ session }) {
       });
 
       if (error) throw error;
-      
+
       // Reset Form
       setNewTask('');
       setNewDate('');
@@ -61,14 +61,14 @@ export default function Calendar({ session }) {
   };
 
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', { 
-      weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' 
+    return new Date(dateString).toLocaleDateString('en-US', {
+      weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
     });
   };
 
   return (
     <div className="max-w-6xl mx-auto p-6 pb-32 h-full flex flex-col gap-6">
-      
+
       {/* SECTION 1: HEADER & MANUAL ADD */}
       <div className="flex flex-col md:flex-row gap-4 items-end justify-between bg-[#1e1f20] p-6 rounded-2xl border border-[#333]">
         <div className="w-full md:w-auto">
@@ -80,21 +80,21 @@ export default function Calendar({ session }) {
 
         {/* INPUT FORM */}
         <div className="flex gap-2 w-full md:w-auto">
-          <input 
-            type="text" 
-            placeholder="New Task..." 
+          <input
+            type="text"
+            placeholder="New Task..."
             value={newTask}
             onChange={(e) => setNewTask(e.target.value)}
             className="bg-[#2a2b2e] border border-[#333] text-white text-sm rounded-lg px-4 py-2 outline-none focus:border-purple-500 w-full md:w-64"
           />
-          <input 
-            type="datetime-local" 
+          <input
+            type="datetime-local"
             value={newDate}
             onChange={(e) => setNewDate(e.target.value)}
             className="bg-[#2a2b2e] border border-[#333] text-white text-sm rounded-lg px-4 py-2 outline-none focus:border-purple-500 w-auto"
           />
-          <button 
-            onClick={handleManualAdd} 
+          <button
+            onClick={handleManualAdd}
             disabled={adding}
             className="bg-purple-600 hover:bg-purple-500 text-white px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 disabled:opacity-50"
           >
@@ -105,7 +105,7 @@ export default function Calendar({ session }) {
       </div>
 
       <div className="flex flex-col lg:flex-row gap-6 h-full">
-        
+
         {/* SECTION 2: GOOGLE CALENDAR EMBED (Left Side) */}
         <div className="flex-1 bg-white rounded-xl overflow-hidden shadow-lg border border-[#333] relative min-h-[500px]">
             <div className="absolute top-2 right-2 z-10">
@@ -113,12 +113,12 @@ export default function Calendar({ session }) {
                     Open Google Cal <ExternalLink size={10} />
                 </a>
             </div>
-            <iframe 
-            src="https://calendar.google.com/calendar/embed?src=en.indian%23holiday%40group.v.calendar.google.com&ctz=Asia%2FKolkata" 
-            style={{border: 0}} 
-            width="100%" 
-            height="100%" 
-            frameBorder="0" 
+            <iframe
+            src="https://calendar.google.com/calendar/embed?src=en.indian%23holiday%40group.v.calendar.google.com&ctz=Asia%2FKolkata"
+            style={{border: 0}}
+            width="100%"
+            height="100%"
+            frameBorder="0"
             scrolling="no"
             ></iframe>
         </div>
@@ -128,7 +128,7 @@ export default function Calendar({ session }) {
             <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
                 <CheckCircle className="text-green-400" size={18} /> Tasks & Reminders
             </h2>
-            
+
             <div className="flex-1 overflow-y-auto pr-1 custom-scrollbar space-y-3 max-h-[500px]">
                 {loading ? (
                     <div className="text-gray-500 text-sm text-center py-10">Loading tasks...</div>
@@ -145,8 +145,8 @@ export default function Calendar({ session }) {
                                     <Clock size={10} /> {formatDate(event.start_time)}
                                 </p>
                             </div>
-                            <button 
-                                onClick={() => deleteEvent(event.id)} 
+                            <button
+                                onClick={() => deleteEvent(event.id)}
                                 className="text-gray-600 hover:text-red-400 transition-colors p-1"
                             >
                                 <Trash2 size={16} />

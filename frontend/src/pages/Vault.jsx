@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase } from './supabaseClient';
+import { supabase } from '.././config/supabaseClient';
 import { FileText, Upload, Download, Loader2, Trash2, Shield } from 'lucide-react';
 
 export default function Vault({ session }) {
@@ -56,7 +56,7 @@ export default function Vault({ session }) {
     }
   };
 
-const downloadFile = async (path, filename) => {
+  const downloadFile = async (path, filename) => {
     try {
       // 1. Get a Signed URL (Valid for 60 seconds)
       const { data, error } = await supabase.storage
@@ -72,14 +72,14 @@ const downloadFile = async (path, filename) => {
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      
+
     } catch (error) {
       console.error("Download Error:", error);
       alert("Error downloading file. Please try again.");
     }
   };
 
-const deleteFile = async (id, filePath) => {
+  const deleteFile = async (id, filePath) => {
     if (!confirm("Are you sure you want to delete this file completely?")) return;
 
     try {
@@ -125,10 +125,10 @@ const deleteFile = async (id, filePath) => {
           </h1>
           <p className="text-gray-400 text-sm mt-1">Securely store your certificates & mark sheets.</p>
         </div>
-        
+
         <div className="flex gap-2 bg-[#1e1f20] p-2 rounded-xl border border-[#333]">
-          <select 
-            value={category} 
+          <select
+            value={category}
             onChange={(e) => setCategory(e.target.value)}
             className="bg-[#2a2b2e] text-white text-sm rounded-lg px-3 outline-none border border-[#333] h-10"
           >
@@ -166,15 +166,15 @@ const deleteFile = async (id, filePath) => {
               </div>
               <h3 className="text-white font-medium truncate mb-1" title={item.filename}>{item.filename}</h3>
               <p className="text-xs text-gray-500 mb-4">Uploaded: {new Date(item.created_at).toLocaleDateString()}</p>
-              
+
               <div className="flex gap-2">
-                <button 
+                <button
                   onClick={() => downloadFile(item.file_path, item.filename)}
                   className="flex-1 flex items-center justify-center gap-2 bg-[#131314] hover:bg-[#2a2b2e] text-gray-300 py-2 rounded-lg text-sm transition-colors"
                 >
                   <Download size={14} /> Download
                 </button>
-                <button 
+                <button
                   onClick={() => deleteFile(item.id, item.file_path)}
                   className="px-3 bg-[#131314] hover:bg-red-900/30 text-gray-500 hover:text-red-400 rounded-lg transition-colors"
                 >
