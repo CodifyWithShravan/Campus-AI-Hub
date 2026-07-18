@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
-import { supabase } from './supabaseClient';
+import { supabase } from '../config/supabaseClient';
 import { Save, Loader2, User } from 'lucide-react';
 
 export default function Profile({ session }) {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-  
+
   // Form State matching your screenshot
   const [formData, setFormData] = useState({
     full_name: '', gender: '', dob: '', mobile: '',
@@ -53,7 +53,7 @@ export default function Profile({ session }) {
     <div className="max-w-4xl mx-auto p-6 pb-20">
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-3xl font-semibold text-white">Profile Details</h1>
-        <button 
+        <button
           onClick={handleSave}
           disabled={saving}
           className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-full font-medium transition-all"
